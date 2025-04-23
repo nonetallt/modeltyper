@@ -3,6 +3,7 @@
 namespace FumeApp\ModelTyper\Actions;
 
 use FumeApp\ModelTyper\Traits\ClassBaseName;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 class WriteRelationship
@@ -12,14 +13,14 @@ class WriteRelationship
     /**
      * Write the relationship to the output.
      *
-     * @param  array  $relation <{name: string, type: string, related:string}>
-     * @param  string  $indent
-     * @param  bool  $jsonOutput
-     * @return array|string
+     * @param  array{name: string, type: string, related:string}  $relation
+     * @return array{type: string, name: string}|string
      */
     public function __invoke(array $relation, string $indent = '', bool $jsonOutput = false, bool $optionalRelation = false, bool $plurals = false): array|string
     {
-        $name = Str::snake($relation['name']);
+        $case = Config::get('modeltyper.case.relations', 'snake');
+        $name = app(MatchCase::class)($case, $relation['name']);
+
         $relatedModel = $this->getClassName($relation['related']);
         $optional = $optionalRelation ? '?' : '';
 
@@ -29,21 +30,21 @@ class WriteRelationship
             default => $relatedModel,
         };
 
-        if(in_array($relation['type'], config('modeltyper.custom_relationships.singular', []))) {
+        if (in_array($relation['type'], Config::get('modeltyper.custom_relationships.singular', []))) {
             $relationType = Str::singular($relation['type']);
         }
 
-        if(in_array($relation['type'], config('modeltyper.custom_relationships.plural', []))) {
+        if (in_array($relation['type'], Config::get('modeltyper.custom_relationships.plural', []))) {
             $relationType = Str::singular($relation['type']);
         }
 
         if ($jsonOutput) {
             return [
-                'name' => $name,
+                'name' => "{$name}{$optional}",
                 'type' => $relationType,
             ];
         }
 
-        return "{$indent}  {$name}{$optional}: {$relationType}\n";
+        return "{$indent}  {$name}{$optional}: {$relationType}" . PHP_EOL;
     }
 }

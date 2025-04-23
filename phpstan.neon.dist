@@ -1,0 +1,26 @@
+includes:
+    - ./vendor/larastan/larastan/extension.neon
+    - ./vendor/nesbot/carbon/extension.neon
+    - ./vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - phar://phpstan.phar/conf/bleedingEdge.neon
+
+parameters:
+    paths:
+        - src
+
+    # Determines the level of checking. 5 is a good starter point 10 is max
+    level: 5
+
+    excludePaths:
+        - vendor/*
+
+    editorUrlTitle: '%%relFile%%:%%line%%'
+
+    # Opening file in an editor
+    #
+    # see https://phpstan.org/user-guide/output-format#opening-file-in-an-editor
+    # for overriding see https://phpstan.org/config-reference#multiple-files
+    #
+    # editorUrl: 'vscode://file/%%relFile%%:%%line%%' # Visual Studio Code
+    # editorUrl: 'phpstorm://open?file=%%relFile%%&line=%%line%%' # PhpStorm
+    # editorUrl: 'atom://core/open/file?filename=%%relFile%%&line=%%line%%' # Atom

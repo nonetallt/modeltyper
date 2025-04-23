@@ -2,22 +2,21 @@
 
 namespace FumeApp\ModelTyper\Actions;
 
-use FumeApp\ModelTyper\Constants\TypescriptMappings;
+use ErrorException;
 
 class MapReturnType
 {
     /**
      * Map the return type to a typescript type.
      *
-     * @param  string  $returnType
-     * @return string
+     * @param  array<string, string>  $mappings
+     *
+     * @throws \ErrorException
      */
-    public function __invoke(string $returnType, bool $timestampsDate = false): string
+    public function __invoke(string $returnType, array $mappings): string
     {
-        $mappings = TypescriptMappings::$mappings;
-        if ($timestampsDate) {
-            $mappings['datetime'] = 'Date';
-            $mappings['date'] = 'Date';
+        if (strlen($returnType) === 0) {
+            throw new ErrorException('Empty string');
         }
 
         $returnType = explode(' ', $returnType)[0];
@@ -25,8 +24,9 @@ class MapReturnType
         $returnType = strtolower($returnType);
 
         if ($returnType[0] === '?') {
-            return $mappings[str_replace('?', '', $returnType)] . '|null';
+            return $mappings[str_replace('?', '', $returnType)] . ' | null';
         }
+
         if (! isset($mappings[$returnType])) {
             return 'unknown';
         }

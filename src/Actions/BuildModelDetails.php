@@ -4,28 +4,29 @@ namespace FumeApp\ModelTyper\Actions;
 
 use FumeApp\ModelTyper\Traits\ClassBaseName;
 use FumeApp\ModelTyper\Traits\ModelRefClass;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use ReflectionException;
 use Symfony\Component\Finder\SplFileInfo;
 
 class BuildModelDetails
 {
-    use ClassBaseName;
-    use ModelRefClass;
+    use ClassBaseName, ModelRefClass;
 
     /**
      * Build the model details.
      *
-     * @param  SplFileInfo  $modelFile
-     * @return array
+     * @return array{reflectionModel: \ReflectionClass, name: string, columns: \Illuminate\Support\Collection, nonColumns: \Illuminate\Support\Collection, relations: \Illuminate\Support\Collection, interfaces: \Illuminate\Support\Collection, imports: \Illuminate\Support\Collection}|null
      *
      * @throws ReflectionException
      */
-    public function __invoke(SplFileInfo $modelFile): array
+    public function __invoke(SplFileInfo $modelFile): ?array
     {
-        $modelFileArg = $modelFile->getRelativePathname();
-        $modelFileArg = str_replace('.php', '', $modelFileArg);
+        $modelDetails = $this->getModelDetails($modelFile);
 
-        $modelDetails = app(RunModelShowCommand::class)($modelFileArg);
+        if ($modelDetails === null) {
+            return null;
+        }
 
         $reflectionModel = $this->getRefInterface($modelDetails);
         $laravelModel = $reflectionModel->newInstance();
@@ -35,7 +36,8 @@ class BuildModelDetails
         $columns = collect($modelDetails['attributes'])->filter(fn ($att) => in_array($att['name'], $databaseColumns));
         $nonColumns = collect($modelDetails['attributes'])->filter(fn ($att) => ! in_array($att['name'], $databaseColumns));
         $relations = collect($modelDetails['relations']);
-        $interfaces = collect($laravelModel->interfaces)->map(fn ($interface, $key) => [
+
+        $interfaces = collect($laravelModel->interfaces ?? [])->map(fn ($interface, $key) => [
             'name' => $key,
             'type' => $interface['type'] ?? 'unknown',
             'nullable' => $interface['nullable'] ?? false,
@@ -43,32 +45,18 @@ class BuildModelDetails
             'forceType' => true,
         ]);
 
-        $imports = $interfaces->filter(function ($interface) {
-            return isset($interface['import']);
-        })
-            ->map(function ($interface) {
-                return [
-                    'import' => $interface['import'],
-                    'type' => $interface['type'],
-                ];
-            })
+        $imports = $interfaces
+            ->filter(fn (array $interface): bool => isset($interface['import']))
+            ->map(fn (array $interface): array => ['import' => $interface['import'], 'type' => $interface['type']])
             ->unique()
             ->values();
 
-        $columns = $columns->map(function ($column) use (&$interfaces) {
-            $interfaces->each(function ($interface, $key) use (&$column, &$interfaces) {
-                if ($key === $column['name']) {
-                    if (isset($interface['type'])) {
-                        $column['type'] = $interface['type'];
-                        $column['forceType'] = true;
+        // Override all columns, mutators and relationships with custom interfaces
+        $columns = $this->overrideCollectionWithInterfaces($columns, $interfaces);
 
-                        $interfaces->forget($key);
-                    }
-                }
-            });
+        $nonColumns = $this->overrideCollectionWithInterfaces($nonColumns, $interfaces);
 
-            return $column;
-        });
+        $relations = $this->overrideCollectionWithInterfaces($relations, $interfaces);
 
         return [
             'reflectionModel' => $reflectionModel,
@@ -76,8 +64,36 @@ class BuildModelDetails
             'columns' => $columns,
             'nonColumns' => $nonColumns,
             'relations' => $relations,
-            'interfaces' => $interfaces->values(),
+            'interfaces' => $interfaces,
             'imports' => $imports,
         ];
+    }
+
+    /**
+     * @return array{"class": class-string<\Illuminate\Database\Eloquent\Model>, database: string, table: string, policy: class-string|null, attributes: \Illuminate\Support\Collection, relations: \Illuminate\Support\Collection, events: \Illuminate\Support\Collection, observers: \Illuminate\Support\Collection, collection: class-string<\Illuminate\Database\Eloquent\Collection<\Illuminate\Database\Eloquent\Model>>, builder: class-string<\Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>>}|null
+     */
+    private function getModelDetails(SplFileInfo $modelFile): ?array
+    {
+        $modelFile = Str::of(app()->getNamespace())
+            ->append($modelFile->getRelativePathname())
+            ->replace('.php', '')
+            ->toString();
+
+        return app(RunModelInspector::class)($modelFile);
+    }
+
+    private function overrideCollectionWithInterfaces(Collection $columns, Collection $interfaces): Collection
+    {
+        return $columns->filter(function ($column) use ($interfaces) {
+            $includeColumn = true;
+
+            $interfaces->each(function ($interface, $key) use ($column, &$includeColumn) {
+                if ($key === $column['name']) {
+                    $includeColumn = false;
+                }
+            });
+
+            return $includeColumn;
+        });
     }
 }
