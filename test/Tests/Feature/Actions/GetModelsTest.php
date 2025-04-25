@@ -27,15 +27,17 @@ class GetModelsTest extends TestCase
 
     public function test_action_can_find_all_models_in_project()
     {
-        $action = app(GetModels::class);
+        $models = app(GetModels::class)();
 
-        $foundModels = $action();
-
-        $this->assertCount(5, $foundModels);
-        $this->assertStringContainsString('Complex.php', $foundModels[0]->getRelativePathname());
-        $this->assertStringContainsString('ComplexRelationship.php', $foundModels[1]->getRelativePathname());
-        $this->assertStringContainsString('Pivot.php', $foundModels[2]->getRelativePathname());
-        $this->assertStringContainsString('User.php', $foundModels[3]->getRelativePathname());
-        $this->assertStringContainsString('Team.php', $foundModels[4]->getRelativePathname());
+        $this->assertSame([
+            'App\\Models\\Complex',
+            'App\\Models\\ComplexRelationship',
+            'App\\Models\\FirstLevel',
+            'App\\Models\\Pivot',
+            'App\\Models\\SecondLevel',
+            'App\\Models\\ThirdLevel',
+            'App\\Models\\User',
+            'App\\Modules\\Models\Team',
+        ], $models->toArray());
     }
 }

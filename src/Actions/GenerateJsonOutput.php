@@ -4,9 +4,9 @@ namespace FumeApp\ModelTyper\Actions;
 
 use FumeApp\ModelTyper\Traits\ClassBaseName;
 use FumeApp\ModelTyper\Traits\ModelRefClass;
+use FumeApp\ModelTyper\Writers\ModelRelationshipWriter;
 use Illuminate\Support\Collection;
 use ReflectionClass;
-use Symfony\Component\Finder\SplFileInfo;
 
 class GenerateJsonOutput
 {
@@ -26,36 +26,29 @@ class GenerateJsonOutput
     /**
      * Output the command in the CLI as JSON.
      *
-     * @param  Collection<int, \Symfony\Component\Finder\SplFileInfo>  $models
+     * @param  Collection<int, string>  $models
      * @param  array<string, string>  $mappings
      */
     public function __invoke(Collection $models, array $mappings, bool $useEnums = false): string
     {
         $modelBuilder = app(BuildModelDetails::class);
         $colAttrWriter = app(WriteColumnAttribute::class);
-        $relationWriter = app(WriteRelationship::class);
+        $relationWriter = new ModelRelationshipWriter(jsonOutput: true);
         $enumWriter = app(WriteEnumConst::class);
 
-        $models->each(function (SplFileInfo $model) use ($modelBuilder, $colAttrWriter, $relationWriter, $mappings, $useEnums) {
-            $modelDetails = $modelBuilder($model);
+        foreach($models as $modelClass) {
+            $modelDetails = $modelBuilder($modelClass);
+            $name = $modelDetails->getName();
+            $reflectionModel = $modelDetails->getReflectionClass();
 
             if ($modelDetails === null) {
                 // skip iteration if model details could not be resolved
-                return;
+                continue;
             }
 
-            [
-                'reflectionModel' => $reflectionModel,
-                'name' => $name,
-                'columns' => $columns,
-                'nonColumns' => $nonColumns,
-                'relations' => $relations,
-                'interfaces' => $interfaces,
-            ] = $modelDetails;
-
-            $this->output['interfaces'][$name] = $columns
-                ->merge($nonColumns)
-                ->merge($interfaces)
+            $this->output['interfaces'][$name] = $modelDetails->getColumnAttributes()
+                ->merge($modelDetails->getNonColumnAttributes())
+                ->merge($modelDetails->getIntefaces())
                 ->map(function ($att) use ($reflectionModel, $colAttrWriter, $mappings, $useEnums) {
                     [$property, $enum] = $colAttrWriter(reflectionModel: $reflectionModel, mappings: $mappings, attribute: $att, jsonOutput: true, useEnums: $useEnums);
                     if ($enum) {
@@ -65,8 +58,8 @@ class GenerateJsonOutput
                     return $property;
                 })->toArray();
 
-            $this->output['relations'] = $relations->map(function ($rel) use ($relationWriter, $name) {
-                $relation = $relationWriter(relation: $rel, jsonOutput: true);
+            $this->output['relations'] = $modelDetails->getRelations()->map(function ($rel) use ($relationWriter, $name) {
+                $relation = $relationWriter->write($rel);
 
                 return [
                     $relation['type'] => [
@@ -75,11 +68,10 @@ class GenerateJsonOutput
                     ],
                 ];
             })->toArray();
-        });
+        }
 
         $this->output['enums'] = collect($this->enumReflectors)->map(function ($enum) use ($enumWriter, $useEnums) {
             $enumConst = $enumWriter(reflection: $enum, jsonOutput: true, useEnums: $useEnums);
-
             return [
                 $enumConst['name'] => [
                     'name' => $enumConst['name'],

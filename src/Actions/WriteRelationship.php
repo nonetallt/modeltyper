@@ -16,7 +16,7 @@ class WriteRelationship
      * @param  array{name: string, type: string, related:string}  $relation
      * @return array{type: string, name: string}|string
      */
-    public function __invoke(array $relation, string $indent = '', bool $jsonOutput = false, bool $optionalRelation = false, bool $plurals = false): array|string
+    public function __invoke(array $relation, string $indent = '', bool $jsonOutput = false, bool $optionalRelation = false, bool $plurals = false, string|null $suffix = null): array|string
     {
         $case = Config::get('modeltyper.case.relations', 'snake');
         $name = app(MatchCase::class)($case, $relation['name']);
@@ -25,7 +25,7 @@ class WriteRelationship
         $optional = $optionalRelation ? '?' : '';
 
         $relationType = match ($relation['type']) {
-            'BelongsToMany', 'HasMany', 'HasManyThrough', 'MorphToMany', 'MorphMany', 'MorphedByMany' => $plurals === true ? Str::plural($relatedModel) : (Str::singular($relatedModel) . '[]'),
+            'BelongsToMany', 'HasMany', 'HasManyThrough', 'MorphToMany', 'MorphMany', 'MorphedByMany' => $this->multipleType($relatedModel, $plurals, $suffix),
             'BelongsTo', 'HasOne', 'HasOneThrough', 'MorphOne', 'MorphTo' => Str::singular($relatedModel),
             default => $relatedModel,
         };
@@ -35,7 +35,7 @@ class WriteRelationship
         }
 
         if (in_array($relation['type'], Config::get('modeltyper.custom_relationships.plural', []))) {
-            $relationType = Str::singular($relation['type']);
+            $relationType = $this->multipleType($relation['type'], $plurals, $suffix);
         }
 
         if ($jsonOutput) {
@@ -46,5 +46,18 @@ class WriteRelationship
         }
 
         return "{$indent}  {$name}{$optional}: {$relationType}" . PHP_EOL;
+    }
+
+    private function singularType(string $model, string|null $suffix)
+    {
+        return Str::singular($model) . $suffix;
+    }
+
+    private function multipleType(string $model, bool $pluralize, string|null $suffix) : string
+    {
+        if($pluralize) {
+            return Str::plural($model) . $suffix;
+        }
+        return Str::singular($model) . $suffix . '[]';
     }
 }

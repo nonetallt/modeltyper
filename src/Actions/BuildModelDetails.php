@@ -2,27 +2,27 @@
 
 namespace FumeApp\ModelTyper\Actions;
 
-use FumeApp\ModelTyper\Traits\ClassBaseName;
+use FumeApp\ModelTyper\Internal\ModelDetails;
+use FumeApp\ModelTyper\Internal\ModelRelation;
 use FumeApp\ModelTyper\Traits\ModelRefClass;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use ReflectionClass;
 use ReflectionException;
-use Symfony\Component\Finder\SplFileInfo;
 
 class BuildModelDetails
 {
-    use ClassBaseName, ModelRefClass;
+    use ModelRefClass;
 
     /**
      * Build the model details.
      *
-     * @return array{reflectionModel: \ReflectionClass, name: string, columns: \Illuminate\Support\Collection, nonColumns: \Illuminate\Support\Collection, relations: \Illuminate\Support\Collection, interfaces: \Illuminate\Support\Collection, imports: \Illuminate\Support\Collection}|null
+     * @return ModelDetails|null
      *
      * @throws ReflectionException
      */
-    public function __invoke(SplFileInfo $modelFile): ?array
+    public function __invoke(ReflectionClass|string $modelClass): ?ModelDetails
     {
-        $modelDetails = $this->getModelDetails($modelFile);
+        $modelDetails = $this->getModelDetails($modelClass);
 
         if ($modelDetails === null) {
             return null;
@@ -32,7 +32,6 @@ class BuildModelDetails
         $laravelModel = $reflectionModel->newInstance();
         $databaseColumns = $laravelModel->getConnection()->getSchemaBuilder()->getColumnListing($laravelModel->getTable());
 
-        $name = $this->getClassName($modelDetails['class']);
         $columns = collect($modelDetails['attributes'])->filter(fn ($att) => in_array($att['name'], $databaseColumns));
         $nonColumns = collect($modelDetails['attributes'])->filter(fn ($att) => ! in_array($att['name'], $databaseColumns));
         $relations = collect($modelDetails['relations']);
@@ -58,28 +57,25 @@ class BuildModelDetails
 
         $relations = $this->overrideCollectionWithInterfaces($relations, $interfaces);
 
-        return [
-            'reflectionModel' => $reflectionModel,
-            'name' => $name,
-            'columns' => $columns,
-            'nonColumns' => $nonColumns,
-            'relations' => $relations,
-            'interfaces' => $interfaces,
-            'imports' => $imports,
-        ];
+        return new ModelDetails(
+            reflection: $reflectionModel,
+            columnAttributes: $columns,
+            nonColumnAttributes: $nonColumns,
+            relations: $relations->map(fn($relation) => ModelRelation::createFromArray($relation)),
+            interfaces: $interfaces,
+            imports: $imports
+        );
     }
 
     /**
      * @return array{"class": class-string<\Illuminate\Database\Eloquent\Model>, database: string, table: string, policy: class-string|null, attributes: \Illuminate\Support\Collection, relations: \Illuminate\Support\Collection, events: \Illuminate\Support\Collection, observers: \Illuminate\Support\Collection, collection: class-string<\Illuminate\Database\Eloquent\Collection<\Illuminate\Database\Eloquent\Model>>, builder: class-string<\Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>>}|null
      */
-    private function getModelDetails(SplFileInfo $modelFile): ?array
+    private function getModelDetails(ReflectionClass|string $modelClass): ?array
     {
-        $modelFile = Str::of(app()->getNamespace())
-            ->append($modelFile->getRelativePathname())
-            ->replace('.php', '')
-            ->toString();
-
-        return app(RunModelInspector::class)($modelFile);
+        if($modelClass instanceof ReflectionClass) {
+            $modelClass = $modelClass->getName();
+        }
+        return app(RunModelInspector::class)($modelClass);
     }
 
     private function overrideCollectionWithInterfaces(Collection $columns, Collection $interfaces): Collection

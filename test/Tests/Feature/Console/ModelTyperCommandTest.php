@@ -3,13 +3,16 @@
 namespace Tests\Feature\Console;
 
 use App\Models\Complex;
+use App\Models\FirstLevel;
 use App\Models\User;
 use FumeApp\ModelTyper\Commands\ModelTyperCommand;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 use Tests\Traits\GeneratesOutput;
 use Tests\Traits\UsesInputFiles;
+use FumeApp\ModelTyper\Internal\Debugger;
 
 class ModelTyperCommandTest extends TestCase
 {
@@ -18,8 +21,19 @@ class ModelTyperCommandTest extends TestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-
         $this->deleteOutput();
+    }
+
+    /**
+     * Artisan::output() does not work while in test context and $this->artisan(...)->expectsOutput()
+     * does not show the difference between real output and expectation.
+     *
+     * This method shows the difference between expectation and the real command output.
+     */
+    protected function assertCommandOutputMatches(string $expected, string $command, array $args)
+    {
+        Artisan::call($command, [...$args, '--debug' => true]);
+        $this->assertSame($this->getExpectedContent($expected), Debugger::getLastCommandOutput());
     }
 
     public function test_command_can_be_executed_successfully()
@@ -66,12 +80,10 @@ class ModelTyperCommandTest extends TestCase
         // set global-namespace config
         Config::set('modeltyper.global-namespace', 'App.Models');
 
-        $expected = $this->getExpectedContent('user-global.ts');
-
-        $this->artisan(ModelTyperCommand::class, [
+        $this->assertCommandOutputMatches('user-global.ts', ModelTyperCommand::class, [
             '--model' => User::class,
             '--global' => true,
-        ])->expectsOutput($expected);
+        ]);
     }
 
     public function test_command_generates_json_when_option_is_enabled()
@@ -106,12 +118,10 @@ class ModelTyperCommandTest extends TestCase
 
     public function test_command_generates_plurals_when_option_is_enabled()
     {
-        $expected = $this->getExpectedContent('user-plurals.ts');
-
-        $this->artisan(ModelTyperCommand::class, [
+        $this->assertCommandOutputMatches('user-plurals.ts', ModelTyperCommand::class, [
             '--model' => User::class,
             '--plurals' => true,
-        ])->expectsOutput($expected);
+        ]);
     }
 
     public function test_command_generates_no_relations_when_option_is_enabled()
@@ -238,5 +248,15 @@ class ModelTyperCommandTest extends TestCase
         $this->artisan(ModelTyperCommand::class, [
             '--model' => Complex::class,
         ])->expectsOutput($expected);
+    }
+
+    public function test_command_generates_expected_output_for_fillable_relations()
+    {
+        $this->assertCommandOutputMatches('nested-relations.ts', ModelTyperCommand::class, [
+            '--model' => FirstLevel::class,
+            '--fillables' => true,
+            '--fillable-suffix' => 'Editable',
+            '--fillable-relations' => true
+        ]);
     }
 }

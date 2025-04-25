@@ -4,6 +4,7 @@ namespace FumeApp\ModelTyper\Commands;
 
 use FumeApp\ModelTyper\Actions\Generator;
 use FumeApp\ModelTyper\Exceptions\ModelTyperException;
+use FumeApp\ModelTyper\Internal\Debugger;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
@@ -39,6 +40,8 @@ class ModelTyperCommand extends Command
                             {--api-resources : Output api.MetApi interfaces}
                             {--fillables : Output model fillables}
                             {--fillable-suffix= : Appends to fillables}
+                            {--fillable-relations : Output fillable relations as fillables}
+                            {--debug : save output to debugger to make it accessible in tests}
                             {--ignore-config : Ignore options set in config}';
 
     /**
@@ -76,6 +79,7 @@ class ModelTyperCommand extends Command
                 optionalNullables: $this->getConfig('optional-nullables'),
                 fillables: $this->getConfig('fillables'),
                 fillableSuffix: $this->getConfig('fillable-suffix'),
+                fillableRelations: $this->getConfig('fillable-relations')
             );
 
             /** @var string|null $path */
@@ -95,6 +99,11 @@ class ModelTyperCommand extends Command
             }
 
             $this->line($output);
+
+            if($this->option('debug')) {
+                Debugger::setLastCommandOutput($output);
+            }
+
         } catch (ModelTyperException $exception) {
             $this->error($exception->getMessage());
 

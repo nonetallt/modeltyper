@@ -170,6 +170,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Fillable relations
+    |--------------------------------------------------------------------------
+    |
+    | If relations are enabled, any relations of a given fillable model type
+    | will be typed as their fillable counterparts when this setting is enabled.
+    */
+    'fillable-relations' => false,
+
+    /*
+    |--------------------------------------------------------------------------
     | Suffix for Fillable Model Attributes
     |--------------------------------------------------------------------------
     |
