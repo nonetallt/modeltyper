@@ -9,10 +9,10 @@ class FirstLevel extends Model
 {
     protected $fillable = [
         'name',
-        'second_level_models'
+        'second_level_models',
     ];
 
-    public function secondLevelModels() : HasMany
+    public function secondLevelModels(): HasMany
     {
         return $this->hasMany(SecondLevel::class);
     }

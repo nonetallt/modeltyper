@@ -16,7 +16,7 @@ class WriteRelationship
      * @param  array{name: string, type: string, related:string}  $relation
      * @return array{type: string, name: string}|string
      */
-    public function __invoke(array $relation, string $indent = '', bool $jsonOutput = false, bool $optionalRelation = false, bool $plurals = false, string|null $suffix = null): array|string
+    public function __invoke(array $relation, string $indent = '', bool $jsonOutput = false, bool $optionalRelation = false, bool $plurals = false, ?string $suffix = null): array|string
     {
         $case = Config::get('modeltyper.case.relations', 'snake');
         $name = app(MatchCase::class)($case, $relation['name']);
@@ -48,16 +48,17 @@ class WriteRelationship
         return "{$indent}  {$name}{$optional}: {$relationType}" . PHP_EOL;
     }
 
-    private function singularType(string $model, string|null $suffix)
+    private function singularType(string $model, ?string $suffix)
     {
         return Str::singular($model) . $suffix;
     }
 
-    private function multipleType(string $model, bool $pluralize, string|null $suffix) : string
+    private function multipleType(string $model, bool $pluralize, ?string $suffix): string
     {
-        if($pluralize) {
+        if ($pluralize) {
             return Str::plural($model) . $suffix;
         }
+
         return Str::singular($model) . $suffix . '[]';
     }
 }

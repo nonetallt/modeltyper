@@ -6,13 +6,13 @@ use App\Models\Complex;
 use App\Models\FirstLevel;
 use App\Models\User;
 use FumeApp\ModelTyper\Commands\ModelTyperCommand;
+use FumeApp\ModelTyper\Internal\Debugger;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 use Tests\Traits\GeneratesOutput;
 use Tests\Traits\UsesInputFiles;
-use FumeApp\ModelTyper\Internal\Debugger;
 
 class ModelTyperCommandTest extends TestCase
 {
@@ -256,7 +256,7 @@ class ModelTyperCommandTest extends TestCase
             '--model' => FirstLevel::class,
             '--fillables' => true,
             '--fillable-suffix' => 'Editable',
-            '--fillable-relations' => true
+            '--fillable-relations' => true,
         ]);
     }
 }

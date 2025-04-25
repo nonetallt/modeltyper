@@ -67,7 +67,7 @@ class GetModels
             ->when($modelShortName, function ($files, $modelShortName) {
                 return $files->filter(fn (SplFileInfo $file) => $file->getBasename('.php') === $modelShortName);
             })
-            ->map(fn($model) => app()->getNamespace() .  basename(str_replace('/', '\\',$model->getRelativePathname()), '.php'))
+            ->map(fn ($model) => app()->getNamespace() . basename(str_replace('/', '\\', $model->getRelativePathname()), '.php'))
             ->values();
     }
 

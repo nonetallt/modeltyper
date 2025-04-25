@@ -100,7 +100,7 @@ class ModelTyperCommand extends Command
 
             $this->line($output);
 
-            if($this->option('debug')) {
+            if ($this->option('debug')) {
                 Debugger::setLastCommandOutput($output);
             }
 

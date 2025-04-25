@@ -2,10 +2,10 @@
 
 namespace FumeApp\ModelTyper\Writers;
 
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Str;
 use FumeApp\ModelTyper\Actions\MatchCase;
 use FumeApp\ModelTyper\Internal\ModelRelation;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 
 class ModelRelationshipWriter
 {
@@ -13,12 +13,10 @@ class ModelRelationshipWriter
         private bool $jsonOutput = false,
         private bool $optionalRelationship = false,
         private bool $plurals = false,
-        private string|null $suffix = null
-    )
-    {
-    }
+        private ?string $suffix = null
+    ) {}
 
-    public function write(ModelRelation $relation) : string|array
+    public function write(ModelRelation $relation): string|array
     {
         $case = Config::get('modeltyper.case.relations', 'snake');
         $relationName = app(MatchCase::class)($case, $relation->getName());
@@ -51,15 +49,17 @@ class ModelRelationshipWriter
         return "  {$relationName}{$optional}: {$relationType}";
     }
 
-    public function setSuffix(string|null $suffix) : self
+    public function setSuffix(?string $suffix): self
     {
         $this->suffix = $suffix;
+
         return $this;
     }
 
-    public function setOptional(bool $optional) : self
+    public function setOptional(bool $optional): self
     {
         $this->optionalRelationship = $optional;
+
         return $this;
     }
 
@@ -68,11 +68,12 @@ class ModelRelationshipWriter
         return Str::singular($model) . $this->suffix;
     }
 
-    private function multipleType(string $model, bool $pluralize) : string
+    private function multipleType(string $model, bool $pluralize): string
     {
-        if($pluralize) {
+        if ($pluralize) {
             return Str::plural($model) . $this->suffix;
         }
+
         return Str::singular($model) . $this->suffix . '[]';
     }
 }

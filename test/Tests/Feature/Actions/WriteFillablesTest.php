@@ -29,7 +29,7 @@ class WriteFillablesTest extends TestCase
             relations: $relations,
             fillableRelations: true,
             fillableSuffix: 'Editable',
-            relationWriter: new ModelRelationshipWriter()
+            relationWriter: new ModelRelationshipWriter
         );
 
         $expected = $this->getExpectedContent('fillable-relation.ts');

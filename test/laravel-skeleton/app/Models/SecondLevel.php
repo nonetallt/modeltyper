@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SecondLevel extends Model
 {
-    public function thirdLevelModels() : HasMany
+    public function thirdLevelModels(): HasMany
     {
         return $this->hasMany(ThirdLevel::class);
     }

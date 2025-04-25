@@ -36,7 +36,7 @@ class GenerateJsonOutput
         $relationWriter = new ModelRelationshipWriter(jsonOutput: true);
         $enumWriter = app(WriteEnumConst::class);
 
-        foreach($models as $modelClass) {
+        foreach ($models as $modelClass) {
             $modelDetails = $modelBuilder($modelClass);
             $name = $modelDetails->getName();
             $reflectionModel = $modelDetails->getReflectionClass();
@@ -72,6 +72,7 @@ class GenerateJsonOutput
 
         $this->output['enums'] = collect($this->enumReflectors)->map(function ($enum) use ($enumWriter, $useEnums) {
             $enumConst = $enumWriter(reflection: $enum, jsonOutput: true, useEnums: $useEnums);
+
             return [
                 $enumConst['name'] => [
                     'name' => $enumConst['name'],

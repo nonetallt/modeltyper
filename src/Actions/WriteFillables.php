@@ -3,8 +3,8 @@
 namespace FumeApp\ModelTyper\Actions;
 
 use FumeApp\ModelTyper\Writers\ModelRelationshipWriter;
-use ReflectionClass;
 use Illuminate\Support\Collection;
+use ReflectionClass;
 
 class WriteFillables
 {
@@ -12,23 +12,22 @@ class WriteFillables
         ReflectionClass $reflectionModel,
         Collection $relations,
         bool $fillableRelations,
-        string|null $fillableSuffix,
+        ?string $fillableSuffix,
         ModelRelationshipWriter $relationWriter
-    ) : string
-    {
+    ): string {
         $fillableRelationsType = '';
         $fillableAttributes = $reflectionModel->newInstanceWithoutConstructor()->getFillable();
 
-        if($fillableRelations) {
+        if ($fillableRelations) {
             // Remove relations from attribute list
-            $fillableAttributes = collect($fillableAttributes)->filter(function($attr) use($relations) {
-                return $relations->first(fn($relation) => $relation->accessibleViaAttribute($attr)) === null;
-            } )->toArray();
+            $fillableAttributes = collect($fillableAttributes)->filter(function ($attr) use ($relations) {
+                return $relations->first(fn ($relation) => $relation->accessibleViaAttribute($attr)) === null;
+            })->toArray();
 
             // Create type for fillable relations
             $fillableRelationsType .= ' & {' . PHP_EOL;
 
-            foreach($relations as $relation) {
+            foreach ($relations as $relation) {
                 $fillableRelationsType .= $relationWriter->setOptional(false)->setSuffix($fillableSuffix)->write($relation) . PHP_EOL;
             }
             $fillableRelationsType .= '}';

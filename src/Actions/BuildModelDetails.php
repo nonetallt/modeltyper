@@ -16,7 +16,6 @@ class BuildModelDetails
     /**
      * Build the model details.
      *
-     * @return ModelDetails|null
      *
      * @throws ReflectionException
      */
@@ -61,7 +60,7 @@ class BuildModelDetails
             reflection: $reflectionModel,
             columnAttributes: $columns,
             nonColumnAttributes: $nonColumns,
-            relations: $relations->map(fn($relation) => ModelRelation::createFromArray($relation)),
+            relations: $relations->map(fn ($relation) => ModelRelation::createFromArray($relation)),
             interfaces: $interfaces,
             imports: $imports
         );
@@ -72,9 +71,10 @@ class BuildModelDetails
      */
     private function getModelDetails(ReflectionClass|string $modelClass): ?array
     {
-        if($modelClass instanceof ReflectionClass) {
+        if ($modelClass instanceof ReflectionClass) {
             $modelClass = $modelClass->getName();
         }
+
         return app(RunModelInspector::class)($modelClass);
     }
 

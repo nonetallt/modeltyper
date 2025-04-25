@@ -34,6 +34,6 @@ class BuildModelDetailsTest extends TestCase
 
         $result = $action($userClass);
         $this->assertInstanceOf(ModelDetails::class, $result);
-        $this->assertSame(['notifications'], $result->getRelations()->map(fn($relation) => $relation->getName())->toArray());
+        $this->assertSame(['notifications'], $result->getRelations()->map(fn ($relation) => $relation->getName())->toArray());
     }
 }

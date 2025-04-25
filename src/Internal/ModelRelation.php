@@ -2,8 +2,8 @@
 
 namespace FumeApp\ModelTyper\Internal;
 
-use ReflectionClass;
 use Illuminate\Support\Str;
+use ReflectionClass;
 
 class ModelRelation
 {
@@ -11,31 +11,29 @@ class ModelRelation
         private string $name,
         private string $type,
         private string $related
-    )
-    {
-    }
+    ) {}
 
-    public static function createFromArray(array $relation) : self
+    public static function createFromArray(array $relation): self
     {
         return new self(...$relation);
     }
 
-    public function getName() : string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function getType() : string
+    public function getType(): string
     {
         return $this->type;
     }
 
-    public function getRelatedModelClass() : string
+    public function getRelatedModelClass(): string
     {
         return $this->related;
     }
 
-    public function getRelatedModelReflection() : ReflectionClass
+    public function getRelatedModelReflection(): ReflectionClass
     {
         return new ReflectionClass($this->related);
     }
@@ -43,7 +41,7 @@ class ModelRelation
     /**
      * Check if calling getter of specified attribute name will access this relation
      */
-    public function accessibleViaAttribute(string $attributeName) : bool
+    public function accessibleViaAttribute(string $attributeName): bool
     {
         return Str::camel($this->name) === Str::camel($attributeName);
     }

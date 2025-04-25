@@ -14,26 +14,24 @@ class ModelDetails
         private Collection $relations,
         private Collection $interfaces,
         private Collection $imports
-    )
-    {
-    }
+    ) {}
 
-    public function getName() : string
+    public function getName(): string
     {
         return $this->reflection->getShortName();
     }
 
-    public function getReflectionClass() : ReflectionClass
+    public function getReflectionClass(): ReflectionClass
     {
         return $this->reflection;
     }
 
-    public function getColumnAttributes() : Collection
+    public function getColumnAttributes(): Collection
     {
         return $this->columnAttributes;
     }
 
-    public function getNonColumnAttributes() : Collection
+    public function getNonColumnAttributes(): Collection
     {
         return $this->nonColumnAttributes;
     }
@@ -41,17 +39,17 @@ class ModelDetails
     /**
      * @return Collection<int, ModelRelation>
      */
-    public function getRelations() : Collection
+    public function getRelations(): Collection
     {
         return $this->relations;
     }
 
-    public function getIntefaces() : Collection
+    public function getIntefaces(): Collection
     {
         return $this->interfaces;
     }
 
-    public function getImports() : Collection
+    public function getImports(): Collection
     {
         return $this->imports;
     }
