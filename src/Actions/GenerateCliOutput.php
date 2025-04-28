@@ -151,7 +151,7 @@ class GenerateCliOutput
                 $output->writeLn(app(WriteFillables::class)(
                     reflectionModel: $modelDetails->getReflectionClass(),
                     relations: $modelDetails->getRelations(),
-                    fillableRelations: $fillableRelations,
+                    useFillableRelations: $fillableRelations,
                     fillableSuffix: $fillableSuffix,
                     relationWriter: $relationWriter
                 ));

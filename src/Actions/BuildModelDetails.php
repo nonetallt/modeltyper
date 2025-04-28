@@ -60,7 +60,7 @@ class BuildModelDetails
             reflection: $reflectionModel,
             columnAttributes: $columns,
             nonColumnAttributes: $nonColumns,
-            relations: $relations->map(fn ($relation) => ModelRelation::createFromArray($relation)),
+            relations: $relations->map(fn ($relation) => ModelRelation::createFromArray(['model' => $reflectionModel, ...$relation])),
             interfaces: $interfaces,
             imports: $imports
         );

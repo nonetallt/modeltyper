@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Writer;
 
+use App\Models\User;
 use FumeApp\ModelTyper\Internal\ModelRelation;
 use FumeApp\ModelTyper\Writers\ModelRelationshipWriter;
+use ReflectionClass;
 use Tests\TestCase;
 
 class ModelRelationshipWriterTest extends TestCase
@@ -16,6 +18,7 @@ class ModelRelationshipWriterTest extends TestCase
 
         // Initialize the sample relation
         $this->relation = ModelRelation::createFromArray([
+            'model' => new ReflectionClass(User::class),
             'name' => 'notifications',
             'type' => 'MorphMany',
             'related' => "Illuminate\Notifications\DatabaseNotification",

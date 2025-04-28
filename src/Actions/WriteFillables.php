@@ -11,23 +11,23 @@ class WriteFillables
     public function __invoke(
         ReflectionClass $reflectionModel,
         Collection $relations,
-        bool $fillableRelations,
+        bool $useFillableRelations,
         ?string $fillableSuffix,
         ModelRelationshipWriter $relationWriter
     ): string {
         $fillableRelationsType = '';
         $fillableAttributes = $reflectionModel->newInstanceWithoutConstructor()->getFillable();
 
-        if ($fillableRelations) {
-            // Remove relations from attribute list
+        if ($useFillableRelations) {
+            // Remove fillable relations from attribute list
             $fillableAttributes = collect($fillableAttributes)->filter(function ($attr) use ($relations) {
-                return $relations->first(fn ($relation) => $relation->accessibleViaAttribute($attr)) === null;
+                return $relations->first(fn ($relation) => $relation->isAccessibleViaAttribute($attr)) === null;
             })->toArray();
 
             // Create type for fillable relations
             $fillableRelationsType .= ' & {' . PHP_EOL;
 
-            foreach ($relations as $relation) {
+            foreach ($relations->filter(fn($relation) => $relation->isFillable()) as $relation) {
                 $fillableRelationsType .= $relationWriter->setOptional(false)->setSuffix($fillableSuffix)->write($relation) . PHP_EOL;
             }
             $fillableRelationsType .= '}';

@@ -27,7 +27,7 @@ class WriteFillablesTest extends TestCase
         $result = app(WriteFillables::class)(
             reflectionModel: $model,
             relations: $relations,
-            fillableRelations: true,
+            useFillableRelations: true,
             fillableSuffix: 'Editable',
             relationWriter: new ModelRelationshipWriter
         );
