@@ -30,6 +30,7 @@ class WriteFillables
             $fillableRelationsType .= ' & {' . PHP_EOL;
 
             foreach ($relations->filter(fn ($relation) => $relation->isFillable()) as $relation) {
+                // Note that changes to writer here must not mutate the original to retain writer reusability
                 $fillableRelationsType .= $relationWriter->setOptional(false)->setSuffix($fillableSuffix)->write($relation) . PHP_EOL;
             }
             $fillableRelationsType .= '}';

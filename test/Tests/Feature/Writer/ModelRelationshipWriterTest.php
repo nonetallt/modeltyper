@@ -57,4 +57,23 @@ class ModelRelationshipWriterTest extends TestCase
 
         $this->assertStringContainsString('notifications: DatabaseNotifications', $result);
     }
+
+    public function test_writer_config_is_immutable()
+    {
+        $originalWriter = new ModelRelationshipWriter(suffix: 'foo', optionalRelationship: false);
+        $newWriter = $originalWriter->setSuffix('bar')->setOptional(true);
+        $testedKeys = ['suffix', 'optionalRelationship'];
+
+        // Assert that config remains same for the original writer
+        $this->assertSame(
+            ['optionalRelationship' => false, 'suffix' => 'foo'],
+            array_intersect_key($originalWriter->toArray(), array_flip($testedKeys))
+        );
+
+        // Assert that config was changed for new writer
+        $this->assertSame(
+            ['optionalRelationship' => true, 'suffix' => 'bar'],
+            array_intersect_key($newWriter->toArray(), array_flip($testedKeys))
+        );
+    }
 }

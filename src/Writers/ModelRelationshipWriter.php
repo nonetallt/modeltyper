@@ -6,6 +6,7 @@ use FumeApp\ModelTyper\Actions\MatchCase;
 use FumeApp\ModelTyper\Internal\ModelRelation;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
+use ReflectionClass;
 
 class ModelRelationshipWriter
 {
@@ -36,7 +37,7 @@ class ModelRelationshipWriter
         }
 
         if (in_array($relationType, Config::get('modeltyper.custom_relationships.plural', []))) {
-            $relationType = $this->multipleType($relationType, $this->plurals);
+            $relationType = $this->multipleType($relationType);
         }
 
         if ($this->jsonOutput) {
@@ -51,16 +52,18 @@ class ModelRelationshipWriter
 
     public function setSuffix(string $suffix): self
     {
-        $this->suffix = $suffix;
+        $instance = clone $this;
+        $instance->suffix = $suffix;
 
-        return $this;
+        return $instance;
     }
 
     public function setOptional(bool $optional): self
     {
-        $this->optionalRelationship = $optional;
+        $instance = clone $this;
+        $instance->optionalRelationship = $optional;
 
-        return $this;
+        return $instance;
     }
 
     private function singularType(string $model)
@@ -75,5 +78,17 @@ class ModelRelationshipWriter
         }
 
         return Str::singular($model) . $this->suffix . '[]';
+    }
+
+    /**
+     * Get an array representation of the writer config.
+     */
+    public function toArray(): array
+    {
+        $constructorParams = (new ReflectionClass($this))->getConstructor()->getParameters();
+
+        return collect($constructorParams)->mapWithKeys(function ($param) {
+            return [$param->getName() => $this->{$param->getName()}];
+        })->toArray();
     }
 }
