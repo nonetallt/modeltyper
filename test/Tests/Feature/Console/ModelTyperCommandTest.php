@@ -267,7 +267,7 @@ class ModelTyperCommandTest extends TestCase
             '--fillables' => true,
             '--fillable-suffix' => 'Editable',
             '--fillable-relations' => true,
-            '--plurals' => true
+            '--plurals' => true,
         ]);
     }
 }

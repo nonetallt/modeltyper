@@ -29,7 +29,7 @@ class WriteFillables
             // Create type for fillable relations
             $fillableRelationsType .= ' & {' . PHP_EOL;
 
-            foreach ($relations->filter(fn($relation) => $relation->isFillable()) as $relation) {
+            foreach ($relations->filter(fn ($relation) => $relation->isFillable()) as $relation) {
                 $fillableRelationsType .= $relationWriter->setOptional(false)->setSuffix($fillableSuffix)->write($relation) . PHP_EOL;
             }
             $fillableRelationsType .= '}';
@@ -40,7 +40,7 @@ class WriteFillables
 
         $result = "export type {$modelName}{$fillableSuffix} = Pick<$modelName, $fillablesUnion>" . $fillableRelationsType;
 
-        if($plurals) {
+        if ($plurals) {
             $result .= PHP_EOL;
             $fillablePlural = Str::plural("{$modelName}{$fillableSuffix}");
             $result .= "export type $fillablePlural = {$modelName}{$fillableSuffix}[]";

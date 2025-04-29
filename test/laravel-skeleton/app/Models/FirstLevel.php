@@ -13,7 +13,7 @@ class FirstLevel extends Model
         'second_level_models',
     ];
 
-    public function user() : BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

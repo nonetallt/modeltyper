@@ -40,7 +40,7 @@ class ModelRelation
     /**
      * Get the name of the model class that defined this relation
      */
-    public function getDefiningModelClass() : string
+    public function getDefiningModelClass(): string
     {
         return $this->model->getName();
     }
@@ -61,13 +61,14 @@ class ModelRelation
     /**
      * Check if this relation is accessible via a fillable attribute
      */
-    public function isFillable() : bool
+    public function isFillable(): bool
     {
-        foreach($this->getFillables() as $fillableAttribute) {
-            if($this->isAccessibleViaAttribute($fillableAttribute)) {
+        foreach ($this->getFillables() as $fillableAttribute) {
+            if ($this->isAccessibleViaAttribute($fillableAttribute)) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -85,11 +86,12 @@ class ModelRelation
     private function getFillables()
     {
         $key = $this->model->getName();
-        if(! array_key_exists($key, self::$fillables)) {
+        if (! array_key_exists($key, self::$fillables)) {
             // Resolve fillables for owner model
             // The fillables are cached on per model basis to avoid redundant repeat constructions
             self::$fillables[$key] = $this->model->newInstanceWithoutConstructor()->getFillable();
         }
+
         return self::$fillables[$key];
     }
 }

@@ -49,9 +49,10 @@ class ModelRelationshipWriter
         return "  {$relationName}{$optional}: {$relationType}";
     }
 
-    public function setSuffix(string $suffix) : self
+    public function setSuffix(string $suffix): self
     {
         $this->suffix = $suffix;
+
         return $this;
     }
 
