@@ -4,6 +4,7 @@ namespace FumeApp\ModelTyper\Actions;
 
 use FumeApp\ModelTyper\Writers\ModelRelationshipWriter;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use ReflectionClass;
 
 class WriteFillables
@@ -13,7 +14,8 @@ class WriteFillables
         Collection $relations,
         bool $useFillableRelations,
         ?string $fillableSuffix,
-        ModelRelationshipWriter $relationWriter
+        ModelRelationshipWriter $relationWriter,
+        bool $plurals = false
     ): string {
         $fillableRelationsType = '';
         $fillableAttributes = $reflectionModel->newInstanceWithoutConstructor()->getFillable();
@@ -36,6 +38,14 @@ class WriteFillables
         $modelName = $reflectionModel->getShortName();
         $fillablesUnion = implode(' | ', array_map(fn ($fillableAttribute) => "'$fillableAttribute'", $fillableAttributes));
 
-        return "export type {$modelName}{$fillableSuffix} = Pick<$modelName, $fillablesUnion>" . $fillableRelationsType;
+        $result = "export type {$modelName}{$fillableSuffix} = Pick<$modelName, $fillablesUnion>" . $fillableRelationsType;
+
+        if($plurals) {
+            $result .= PHP_EOL;
+            $fillablePlural = Str::plural("{$modelName}{$fillableSuffix}");
+            $result .= "export type $fillablePlural = {$modelName}{$fillableSuffix}[]";
+        }
+
+        return $result;
     }
 }

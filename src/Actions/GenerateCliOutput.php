@@ -153,7 +153,8 @@ class GenerateCliOutput
                     relations: $modelDetails->getRelations(),
                     useFillableRelations: $fillableRelations,
                     fillableSuffix: $fillableSuffix,
-                    relationWriter: $relationWriter
+                    relationWriter: $relationWriter,
+                    plurals: $plurals
                 ));
             }
             $output->writeLn();

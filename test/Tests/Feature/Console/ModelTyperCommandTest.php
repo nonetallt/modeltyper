@@ -259,4 +259,15 @@ class ModelTyperCommandTest extends TestCase
             '--fillable-relations' => true,
         ]);
     }
+
+    public function test_command_generates_expected_output_for_fillable_plural_relations()
+    {
+        $this->assertCommandOutputMatches('nested-relations-plural.ts', ModelTyperCommand::class, [
+            '--model' => FirstLevel::class,
+            '--fillables' => true,
+            '--fillable-suffix' => 'Editable',
+            '--fillable-relations' => true,
+            '--plurals' => true
+        ]);
+    }
 }

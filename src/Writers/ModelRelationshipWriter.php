@@ -26,7 +26,7 @@ class ModelRelationshipWriter
         $optional = $this->optionalRelationship ? '?' : '';
 
         $relationType = match ($relationType) {
-            'BelongsToMany', 'HasMany', 'HasManyThrough', 'MorphToMany', 'MorphMany', 'MorphedByMany' => $this->multipleType($relatedModel, $this->plurals),
+            'BelongsToMany', 'HasMany', 'HasManyThrough', 'MorphToMany', 'MorphMany', 'MorphedByMany' => $this->multipleType($relatedModel),
             'BelongsTo', 'HasOne', 'HasOneThrough', 'MorphOne', 'MorphTo' => $this->singularType($relatedModel),
             default => $relatedModel,
         };
@@ -49,10 +49,9 @@ class ModelRelationshipWriter
         return "  {$relationName}{$optional}: {$relationType}";
     }
 
-    public function setSuffix(?string $suffix): self
+    public function setSuffix(string $suffix) : self
     {
         $this->suffix = $suffix;
-
         return $this;
     }
 
@@ -68,10 +67,10 @@ class ModelRelationshipWriter
         return Str::singular($model) . $this->suffix;
     }
 
-    private function multipleType(string $model, bool $pluralize): string
+    private function multipleType(string $model): string
     {
-        if ($pluralize) {
-            return Str::plural($model) . $this->suffix;
+        if ($this->plurals) {
+            return Str::plural($model . $this->suffix);
         }
 
         return Str::singular($model) . $this->suffix . '[]';
